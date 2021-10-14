@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taller de seguridad</title>
+    <style>
+        p {
+            width: 1000px;
+            /* Control de la altura con base en el texto del div*/
+            height: auto;
+            word-wrap: break-word;
+        }
+
+        body {
+            background-color: lightgrey;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Taller de seguridad - William Ramos</h1>
+    </header>
+    <div class="contenido">
+        <form>
+            <hr>
+            <b>Cifrado Afin</b><br><br>
+            Texto a cifrar: <input id="textoCifrar" type="text"></input><br><br>
+            <input id="cifrado" type="button" value="Cifrado Afin" onclick="mainCifrado();" />
+        </form>
+        <p class="maximo"><label id="resultadoCifrado"></label></p>
+
+        <form>
+            <hr>
+            <b>Descifrado Afin</b><br><br>
+            Texto a descifrar: <input id="textoDescifrar" type="text"></input><br><br>
+            <input id="descifrado" type="button" value="Descifrado Afin" onclick="mainDescifrado();" />
+        </form>
+        <p><label id="resultadoDescifrado"></label></p>
+        <h3><label id="estadistica"></label></h3>
+    </div>
+
+    <hr>
+
+    <script>
+
+        // Variables globales
+        let letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'Ñ', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+        let a, b;
+        let mensaje;
+
+        // Variable cifrado
+        let resultado;
+        let mensajeCifrado = '';
+
+        // Variables descifrado
+        let primeraPosicionSinCifrar;
+        let segundaPosicionSinCifrar;
+        let resultadoDescifrado;
+        let inv;
+        let mensajeDescifrado = '';
+
+        // Metodo para obtener el maximo comun divisor y saber si son coprimos
+        const maximoComunDivisor = (a, b) => {
+
+            let temporal; //Para no perder b
+            while (b !== 0) {
+                temporal = b;
+                b = a % b;
+                a = temporal;
+            }
+            return a;
+        };
+
+        // Metodo para obtener el mensaje cifrado
+        function cifrado(a, b) {
+            let m = document.getElementById("textoCifrar").value;
+            mensaje = Array.from(m.toUpperCase());
+            mensajeCifrado = '';
+            for (let i = 0; i < mensaje.length; i++) {
+                if (mensaje[i] == ' ') {
+                    mensajeCifrado += ' ';
+                }
+                for (let j = 0; j < letras.length; j++) {
+                    let valor = letras[j].includes(mensaje[i]);
+
+                    if (valor == true) {
+                        console.log(j);
+                        console.log(a);
+                        console.log(b);
+                        resultado = ((parseInt(a) * j) + parseInt(b)) % 27;
+                        console.log(resultado);
+                        letra = letras[resultado];
+                        mensajeCifrado += letra;
+                    }
+                }
+            }
+
+            document.getElementById('resultadoCifrado').innerHTML = 'El mensaje cifrado es:' + mensajeCifrado;
+            // return `El mensaje cifrado es ${mensajeCifrado}`;
+        }
+
+        // Main cifrado
+        function mainCifrado() {
+            let m = document.getElementById("textoCifrar").value;
+            if (m == '') {
+                alert("DEBE INGRESAR PRIMERO EL TEXTO A CIFRAR");
+            } else {
+                while (resultado != 1) {
+                    a = prompt("INGRESE VALORES DE A:");
+                    b = prompt("INGRESE VALORES DE B:");
+
+                    if (a != null || b != null) {
+                        if (isNaN(a) == false && isNaN(b) == false) {
+                            if ((a % 3) != 0) {
+
+                                if (a != 0 && b != 0) {
+                                    resultado = maximoComunDivisor(a, b);
+                                    if (resultado != 1) {
+                                        alert("LOS NUMEROS INGRESADOS NO SON COPRIMOS");
+                                    } else {
+                                        // Cifrado afin
+                                        cifrado(a, b);
+                                        break;
+                                    }
+                                } else
+                                    alert("LOS NUMEROS INGRESADOS NO SON COPRIMOS");
+                            } else {
+                                alert(" 'A' NO PUEDE SER UN NUMERO QUE SEA MULTIPLO DE 3")
+                            }
+                        } else
+                            alert("A Y B DEBEN SER NUMEROS");
+                    } else
+                        break;
+                }
+            }
+        }
+
+        // Main descifrado
+        function mainDescifrado() {
+            let m = document.getElementById("textoDescifrar").value;
+            if (m == '') {
+                alert("DEBE INGRESAR PRIMERO EL TEXTO A DESCIFRAR");
+            } else {
+
+                estadisticaLetras();
+            }
+        }
+
+        // Calcular inversa
+        function inversa(a, b) {
+            a = a % b;
+            for (var i = 1; i < b; i++) {
+                if ((a * i) % b == 1) {
+                    return i;
+                }
+            }
+            return 1;
+
+        }
+
+        // Metodo para obtener el mensaje descifrado
+        function descifrar(primeraPosicionSinCifrar, segundaPosicionSinCifrar) {
+
+            inv = inversa(4, 27);
+            // Calcular valor de a
+            a = ((primeraPosicionSinCifrar - segundaPosicionSinCifrar) * inv) % 27;
+            b = segundaPosicionSinCifrar;
+
+            inv = inversa(a, 27);
+
+            for (let i = 0; i < mensaje.length; i++) {
+                for (let j = 0; j < letras.length; j++) {
+                    let valor = letras[j].includes(mensaje[i]);
+
+                    if (valor == true) {
+
+                        resultadoDescifrado = ((j - b) * inv) % 27;
+                        if (0 > resultadoDescifrado) {
+                            resultadoDescifrado = resultadoDescifrado + 27;
+                        }
+                        letra = letras[resultadoDescifrado];
+                        mensajeDescifrado += letra;
+                    }
+                }
+            }
+            document.getElementById('resultadoDescifrado').innerHTML = 'El mensaje descifrado es:' + mensajeDescifrado;
+        }
+
+        // Metodo para obtener estadisticas de letras que mas se repiten
+        function estadisticaLetras() {
+
+            let diccionario = {};
+            let m = document.getElementById("textoDescifrar").value;
+            m = m.replace(/\s+/g, '');
+            mensaje = Array.from(m.toUpperCase());
+            for (let l = 0; l < mensaje.length; l++) {
+                if (mensaje[l] in diccionario) {
+                    if (mensaje[l] == ' ') {
+                    } else {
+                        diccionario[mensaje[l]] = diccionario[mensaje[l]] + 1;
+                    }
+                } else {
+                    diccionario[mensaje[l]] = 1;
+                }
+            }
+            // Se crea un arreglo basado en el diccionario
+            var items = Object.keys(diccionario).map(function (key) {
+                return [key, diccionario[key]];
+            });
+
+            // Se ordena segun el segundo elemento para que quede en orden ascendente
+            items.sort(function (first, second) {
+                return second[1] - first[1];
+            });
+            let estadisticaPrimeraLetra = ((items[0][1] / mensaje.length) * 100).toFixed(2);
+            let estadisticaSegundaLetra = ((items[1][1] / mensaje.length) * 100).toFixed(2);
+
+            document.getElementById('estadistica').innerHTML = `Las letras que mas se repiten son la ${items[0][0]} (${estadisticaPrimeraLetra}%) veces y la ${items[1][0]} (${estadisticaSegundaLetra}%)`;
+
+            for (let i = 0; i < letras.length; i++) {
+
+                let valor = letras[i].includes(items[0][0].toUpperCase());
+                let valor2 = letras[i].includes(items[1][0].toUpperCase());
+
+                if (valor == true) {
+                    primeraPosicionSinCifrar = i;
+
+                }
+                if (valor2 == true) {
+                    segundaPosicionSinCifrar = i;
+
+                }
+            }
+            descifrar(primeraPosicionSinCifrar, segundaPosicionSinCifrar);
+        }
+    </script>
+</body>
+
+</html>
+
